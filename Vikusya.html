@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07050d">
+<title>Для тебя ✨</title>
+<style>
+:root{--bg:#07050d;--pink:#ff5c9d;--vio:#8b5cf6;--wine:#5a0f3c;--text:rgba(255,255,255,.86)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:#fff;
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+ -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body{background:
+ radial-gradient(120% 70% at 20% 0%,#2a0f4a 0%,transparent 60%),
+ radial-gradient(100% 70% at 90% 100%,#4a0d2e 0%,transparent 60%),var(--bg)}
+canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.45;z-index:0;pointer-events:none;transition:transform 1.2s ease-out}
+.b1{width:60vmax;height:60vmax;max-width:420px;max-height:420px;background:var(--vio);top:-12%;left:-25%;animation:drift 14s ease-in-out infinite alternate}
+.b2{width:55vmax;height:55vmax;max-width:380px;max-height:380px;background:var(--pink);bottom:-14%;right:-25%;animation:drift 17s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{margin:30px 0 0 20px}}
+
+.app{position:fixed;inset:0;z-index:1}
+.screen{position:absolute;inset:0;display:flex;padding:calc(20px + env(safe-area-inset-top)) 18px calc(70px + env(safe-area-inset-bottom));
+ overflow-y:auto;overflow-x:hidden;opacity:0;visibility:hidden;transform:scale(.96);
+ transition:opacity .6s ease,transform .6s ease,visibility 0s .6s}
+.screen.active{opacity:1;visibility:visible;transform:none;transition:opacity .6s ease,transform .6s ease}
+.card{margin:auto;width:100%;max-width:440px;text-align:center;padding:34px 22px;position:relative;z-index:2;
+ background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+ border:1px solid rgba(255,255,255,.14);border-radius:30px;
+ -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+ box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 60px rgba(139,92,246,.18)}
+h1{font-size:clamp(1.65rem,6.6vw,2.3rem);line-height:1.2;font-weight:650;letter-spacing:-.01em;margin:0 0 16px;text-shadow:0 0 28px rgba(255,92,157,.35)}
+p{font-size:1.06rem;line-height:1.55;color:var(--text);margin:0 0 14px}
+.t{white-space:pre-line;overflow-wrap:anywhere}
+.sub{color:rgba(255,255,255,.7)}
+.big{font-size:clamp(1.25rem,5.4vw,1.6rem);font-weight:600;color:#fff}
+.small{font-size:.95rem;color:rgba(255,255,255,.62);margin-top:22px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:56px;min-width:200px;max-width:100%;padding:0 34px;margin-top:20px;
+ font:600 1.08rem/1 inherit;font-family:inherit;color:#fff;border:0;border-radius:999px;cursor:pointer;
+ background:linear-gradient(135deg,#ff5c9d,#a855f7);box-shadow:0 8px 30px rgba(255,92,157,.4),inset 0 1px 0 rgba(255,255,255,.35);
+ transition:transform .2s ease,box-shadow .2s ease,filter .2s;touch-action:manipulation}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 38px rgba(255,92,157,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn:active{transform:scale(.95);filter:brightness(1.1)}
+.btn:focus-visible,.star:focus-visible{outline:2px solid #fff;outline-offset:4px}
+
+/* delayed appearance */
+.seq{animation:rise .9s cubic-bezier(.2,.7,.2,1) both paused}
+.screen.active .seq{animation-play-state:running;animation-delay:calc(var(--d,0) * 1s)}
+@keyframes rise{from{opacity:0;visibility:hidden;transform:translateY(14px);filter:blur(6px)}to{opacity:1;visibility:visible;transform:none;filter:none}}
+.pop{display:none}.pop.in{display:block;animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
+.pop.in.btn{display:inline-flex}
+.gone{display:none!important}
+.fadeout{opacity:0;transition:opacity .6s}
+
+/* stars */
+.sky{position:relative;width:100%;height:min(46vh,290px);margin:6px 0 4px}
+.star{position:absolute;width:62px;height:62px;margin:-31px 0 0 -31px;padding:0;border:0;background:none;cursor:pointer;
+ filter:drop-shadow(0 0 9px rgba(255,92,157,.9)) drop-shadow(0 0 18px rgba(139,92,246,.6));
+ transition:opacity .6s,transform .6s;touch-action:manipulation}
+.star i{display:block;width:100%;height:100%;
+ clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+ background:linear-gradient(135deg,#fff,#ffb3d6 45%,#a78bfa);animation:tw 3s ease-in-out infinite;animation-delay:var(--s,0s);transition:transform .7s cubic-bezier(.2,1.4,.4,1)}
+@keyframes tw{50%{transform:scale(.8) rotate(10deg);opacity:.75}}
+.star:hover i{transform:scale(1.15)}
+.sky.picked .star{opacity:.15;pointer-events:none}
+.sky.picked .star.sel{opacity:1;transform:scale(1.35)}
+.sky.picked .star.sel i{animation:none;transform:rotate(72deg) scale(1.1)}
+.msg{min-height:96px;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(10px) scale(.96);transition:opacity .8s,transform .8s}
+.msg.show{opacity:1;transform:none}
+.msg p{margin:0;font-size:1.2rem;color:#fff;text-shadow:0 0 20px rgba(255,92,157,.45)}
+
+/* game */
+.gsky{height:min(36vh,230px)}
+.gsky .star{opacity:.5}
+.gsky .star.lit{opacity:1;filter:drop-shadow(0 0 14px #fff) drop-shadow(0 0 30px #ff5c9d)}
+.gsky .star.lit i{transform:scale(1.35);animation:none}
+.gsky.won .star.lit i{transform:scale(1.1)}
+.gsky.lock .star{pointer-events:none}
+
+/* gift */
+.gift{position:relative;width:150px;height:150px;margin:0 auto 22px;animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.gift .glow{position:absolute;left:50%;top:30%;width:130px;height:130px;margin-left:-65px;border-radius:50%;
+ background:radial-gradient(circle,rgba(255,220,240,.95),rgba(255,92,157,.4) 45%,transparent 70%);opacity:0;transform:scale(.3);transition:opacity .9s,transform .9s}
+.gift .body{position:absolute;bottom:0;left:14px;right:14px;height:84px;border-radius:6px 6px 16px 16px;
+ background:linear-gradient(160deg,#c2185b,#6a1b9a);box-shadow:0 10px 30px rgba(194,24,91,.45)}
+.gift .body::after,.gift .lid::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:22px;margin-left:-11px;background:linear-gradient(#ffe0ef,#ffb3d6)}
+.gift .lid{position:absolute;bottom:80px;left:6px;right:6px;height:36px;border-radius:9px;transform-origin:left bottom;
+ background:linear-gradient(160deg,#e91e8c,#8e24aa);box-shadow:0 6px 16px rgba(0,0,0,.35);
+ transition:transform .9s cubic-bezier(.3,1.5,.5,1)}
+.gift.open{animation:none}
+.gift.open .lid{transform:translate(26px,-62px) rotate(-28deg)}
+.gift.open .glow{opacity:1;transform:scale(1.15)}
+
+/* reveal */
+.secret{margin:6px 0 22px}
+.secret .lbl{font-size:1.1rem;color:rgba(255,255,255,.75);margin-bottom:10px}
+.secret .word{font-size:clamp(1.7rem,8.4vw,2.5rem);font-weight:700;line-height:1.2;overflow-wrap:anywhere;color:#fff;
+ text-shadow:0 0 14px rgba(255,92,157,.9),0 0 38px rgba(168,85,247,.8);animation:reveal 1.8s cubic-bezier(.2,.7,.2,1) both,pulse 3.5s 1.8s ease-in-out infinite}
+@keyframes reveal{from{opacity:0;filter:blur(16px);transform:scale(1.25);letter-spacing:.12em}to{opacity:1;filter:none;transform:none;letter-spacing:0}}
+@keyframes pulse{50%{text-shadow:0 0 22px rgba(255,92,157,1),0 0 56px rgba(168,85,247,.95)}}
+.hearts{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.heart{position:absolute;bottom:-30px;color:var(--pink);opacity:0;animation:up linear forwards;text-shadow:0 0 12px rgba(255,92,157,.8)}
+@keyframes up{10%{opacity:.8}to{transform:translateY(-110vh) translateX(var(--x,0)) rotate(var(--r,0deg));opacity:0}}
+
+.dots{position:fixed;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;z-index:5;pointer-events:none}
+.dots span{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.25);transition:all .5s}
+.dots span.on{width:24px;background:linear-gradient(90deg,#ff5c9d,#a855f7);box-shadow:0 0 12px rgba(255,92,157,.7)}
+
+@media (max-height:600px){.card{padding:24px 18px}.sky{height:220px}.gift{transform:scale(.8);margin-bottom:6px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="blob b1"></div><div class="blob b2"></div>
+
+<main class="app" id="app">
+
+<!-- 1 -->
+<section class="screen"><div class="card">
+ <h1 class="t seq" style="--d:.2" data-t="s1a"></h1>
+ <p class="t sub seq" style="--d:1.2" data-t="s1b"></p>
+ <button class="btn seq" style="--d:2.1" data-next data-t="s1btn"></button>
+</div></section>
+
+<!-- 2 -->
+<section class="screen"><div class="card">
+ <h1 class="t seq" style="--d:.2" data-t="s2a"></h1>
+ <p class="t sub seq" style="--d:1.2" data-t="s2b"></p>
+ <button class="btn seq" style="--d:2" data-next data-t="s2btn"></button>
+</div></section>
+
+<!-- 3 stars -->
+<section class="screen" id="sc-stars"><div class="card">
+ <h1 class="t" data-t="s3a"></h1>
+ <div class="sky" id="sky"></div>
+ <div class="msg" id="msg"><p class="t" id="msgText"></p></div>
+ <button class="btn pop" id="starNext" data-next data-t="s3btn"></button>
+</div></section>
+
+<!-- 4 -->
+<section class="screen"><div class="card">
+ <p class="t big seq" style="--d:.2" data-t="s4a"></p>
+ <p class="t seq" style="--d:1.2" data-t="s4b"></p>
+ <p class="t seq" style="--d:3.6" data-t="s4c"></p>
+ <h1 class="t seq" style="--d:5.2;margin-top:8px" data-t="s4d"></h1>
+ <button class="btn seq" style="--d:6.2" data-next data-t="s4btn"></button>
+</div></section>
+
+<!-- 5 gift -->
+<section class="screen" id="sc-gift"><div class="card">
+ <div class="gift" id="gift"><div class="glow"></div><div class="body"></div><div class="lid"></div></div>
+ <div id="giftA">
+  <p class="t big" data-t="s5a"></p>
+  <button class="btn" id="giftOpen" data-t="s5btn"></button>
+ </div>
+ <h1 class="t pop" id="giftB" data-t="s5b"></h1>
+ <p class="t pop" id="giftC" data-t="s5c"></p>
+ <button class="btn pop" id="giftNext" data-next data-t="s5btn2"></button>
+</div></section>
+
+<!-- 5b game -->
+<section class="screen" id="sc-game"><div class="card">
+ <h1 class="t" data-t="g_a"></h1>
+ <p class="t sub" data-t="g_b"></p>
+ <div class="sky gsky lock" id="gsky"></div>
+ <p class="t big" id="gstat" style="min-height:2.4em"></p>
+ <button class="btn pop" id="gNext" data-next data-t="g_btn"></button>
+</div></section>
+
+<!-- 6 pre-final (secret word is NOT here) -->
+<section class="screen"><div class="card">
+ <h1 class="t seq" style="--d:.2" data-t="s6a"></h1>
+ <p class="t seq" style="--d:1.3" data-t="s6b"></p>
+ <p class="t seq" style="--d:2.8" data-t="s6c"></p>
+ <p class="t big seq" style="--d:4.6" data-t="s6d"></p>
+ <button class="btn seq" style="--d:5.6" data-next data-t="s6btn"></button>
+</div></section>
+
+<!-- 7 reveal -->
+<section class="screen" id="sc-reveal">
+ <div class="hearts" id="hearts"></div>
+ <div class="card">
+  <h1 class="t" id="wait" data-t="s7a"></h1>
+  <div class="secret pop" id="secret" role="group">
+   <div class="lbl t" data-t="s7label"></div>
+   <div class="word" id="word"></div>
+  </div>
+  <p class="t big pop" id="r1" data-t="s7b"></p>
+  <p class="t sub pop" id="r2" data-t="s7c"></p>
+  </div>
+</section>
+
+</main>
+<div class="dots" id="dots" aria-hidden="true"></div>
+
+<script>
+/* ===== НАСТРОЙКИ: меняй имя, секретное слово и тексты здесь ===== */
+const CONFIG = {
+  name: "Вика",
+  secretWord: "ma armastan sind",
+  t: {
+    s1a: "{name}, у меня для тебя кое-что есть...",
+    s1b: "Но просто открыть подарок было бы слишком легко.",
+    s1btn: "Открыть ✨",
+    s2a: "Я хотел сделать тебе что-нибудь приятное, чтобы ты не грустила)",
+    s2b: "Поэтому пришлось немного постараться.",
+    s2btn: "Продолжить",
+    s3a: "Выбери одну ✨",
+    s3btn: "Дальше",
+    stars: [
+      "Ты самая красивая кого я знаю❤",
+      "Ты лучшая ксерша в мире❤",
+      "Ты делаешь мои дни лучше❤",
+      "Спасибо тебе за все❤",
+      "Ты такая одна во вселенной❤",
+      "Улыбайся чаще, ты этим греешь❤"
+    ],
+    s4a: "Знаешь...",
+    s4b: "Иногда человеку не нужен какой-то особенный повод, чтобы напомнить ему, что он важен.",
+    s4c: "Поэтому считай это просто маленьким напоминанием.",
+    s4d: "Ты мне очень дорога ❤️",
+    s4btn: "Продолжить",
+    s5a: "Кажется, здесь что-то есть...",
+    s5btn: "Открыть",
+    s5b: "Но нет.\n\nСлишком рано 😌",
+    s5c: "Подарок будет потом.",
+    s5btn2: "Дальше",
+    g_a: "Но сначала — небольшая игра ✨",
+    g_b: "Звёзды загорятся одна за другой. Повтори их порядок.",
+    g_watch: "Смотри внимательно...",
+    g_turn: "Теперь твоя очередь",
+    g_wrong: "Почти! Смотри ещё раз",
+    g_win: "Получилось! Ты умница ✨",
+    g_btn: "Дальше",
+    s6a: "Кажется, это ещё не всё...",
+    s6b: "Перед тем как закончить, у меня есть для тебя маленькое задание.",
+    s6c: "На следующей странице появится секретное слово.\n\nЗапомни его и напиши мне это слово в Телеграм.",
+    s6d: "После этого я отправлю тебе подарок ❤️",
+    s6btn: "Я готова",
+    s7a: "Тогда смотри внимательно...",
+    s7label: "Секретное слово",
+    s7b: "Теперь напиши его мне в Телеграм ❤️",
+    s7c: "А дальше тебя ждёт подарок."
+  }
+};
+/* ================================================================ */
+
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var screens=[].slice.call(document.querySelectorAll('.screen'));
+  var dots=$('dots'), cur=0, lock=false, timers=[], heartTimer=null;
+
+  // тексты
+  [].forEach.call(document.querySelectorAll('[data-t]'),function(el){
+    var v=CONFIG.t[el.getAttribute('data-t')]; if(v==null) return;
+    el.textContent=v.replace(/\{name\}/g,CONFIG.name);
+  });
+
+  // точки
+  screens.forEach(function(){dots.appendChild(document.createElement('span'))});
+  function setDots(){[].forEach.call(dots.children,function(d,i){d.className=i===cur?'on':''})}
+
+  function later(fn,ms){var t=setTimeout(fn,ms);timers.push(t)}
+  function clearT(){timers.forEach(clearTimeout);timers=[];clearInterval(heartTimer)}
+  function show(el){el.classList.add('in')}
+
+  // навигация
+  function go(n){
+    if(lock||n<0||n>=screens.length) return;
+    lock=true; clearT();
+    screens[cur].classList.remove('active');
+    setTimeout(function(){
+      cur=n; screens[cur].classList.add('active'); screens[cur].scrollTop=0;
+      setDots(); enter(n);
+      setTimeout(function(){lock=false},650);
+    },350);
+  }
+  [].forEach.call(document.querySelectorAll('[data-next]'),function(b){
+    b.addEventListener('click',function(){go(cur+1)});
+  });
+
+  // звёзды
+  var pos=[[16,14],[62,7],[40,42],[84,40],[14,72],[62,80]];
+  var sky=$('sky'), msg=$('msg'), picked=false;
+  CONFIG.t.stars.forEach(function(text,i){
+    var b=document.createElement('button');
+    b.className='star'; b.setAttribute('aria-label','Звезда '+(i+1));
+    b.style.left=pos[i][0]+'%'; b.style.top=pos[i][1]+'%';
+    b.innerHTML='<i style="--s:'+(i*.45)+'s"></i>';
+    b.addEventListener('click',function(){
+      if(picked) return; picked=true;
+      sky.classList.add('picked'); b.classList.add('sel');
+      $('msgText').textContent=text; msg.classList.add('show');
+      later(function(){show($('starNext'))},900);
+    });
+    sky.appendChild(b);
+  });
+
+  // подарок
+  $('giftOpen').addEventListener('click',function(){
+    $('gift').classList.add('open');
+    $('giftA').classList.add('fadeout');
+    later(function(){$('giftA').classList.add('gone');show($('giftB'))},650);
+    later(function(){show($('giftC'))},3300);
+    later(function(){show($('giftNext'))},4400);
+  });
+
+  // сердечки
+  function hearts(){
+    var box=$('hearts');
+    heartTimer=setInterval(function(){
+      if(box.childElementCount>12) return;
+      var h=document.createElement('span');
+      h.className='heart'; h.textContent=Math.random()>.5?'❤':'✦';
+      h.style.left=(5+Math.random()*90)+'%';
+      h.style.fontSize=(14+Math.random()*16)+'px';
+      h.style.animationDuration=(6+Math.random()*4)+'s';
+      h.style.setProperty('--x',(Math.random()*60-30)+'px');
+      h.style.setProperty('--r',(Math.random()*40-20)+'deg');
+      h.addEventListener('animationend',function(){h.remove()});
+      box.appendChild(h);
+    },800);
+  }
+
+  // действия при входе на экран
+  function enter(n){
+    if(screens[n].id==='sc-game') startGame();
+    if(screens[n].id==='sc-reveal'){ // раскрытие слова — только здесь слово попадает в DOM
+      later(function(){
+        $('wait').classList.add('fadeout');
+        later(function(){
+          $('wait').classList.add('gone');
+          var w=$('word'); w.textContent='"'+CONFIG.secretWord+'"';
+          $('secret').setAttribute('aria-label',CONFIG.t.s7label+' "'+CONFIG.secretWord+'"');
+          show($('secret')); hearts();
+        },600);
+        later(function(){show($('r1'))},3000);
+        later(function(){show($('r2'))},4500);
+      },1700);
+    }
+  }
+  // мини-игра: повтори порядок звёзд
+  var gp=[[50,14],[18,46],[82,46],[30,86],[70,86]],gsky=$('gsky'),gst=[],seq=[],step=0,won=false;
+  gp.forEach(function(p,i){
+    var b=document.createElement('button');
+    b.className='star';b.setAttribute('aria-label','Звезда '+(i+1));
+    b.style.left=p[0]+'%';b.style.top=p[1]+'%';b.innerHTML='<i></i>';
+    b.addEventListener('click',function(){tap(i)});
+    gsky.appendChild(b);gst.push(b);
+  });
+  function flash(i,ms){gst[i].classList.add('lit');later(function(){gst[i].classList.remove('lit')},ms)}
+  function play(delay){
+    step=0;gsky.classList.add('lock');$('gstat').textContent=CONFIG.t.g_watch;
+    seq.forEach(function(s,k){later(function(){flash(s,550)},delay+k*850)});
+    later(function(){gsky.classList.remove('lock');$('gstat').textContent=CONFIG.t.g_turn},delay+seq.length*850);
+  }
+  function startGame(){
+    if(won) return; seq=[];var l=-1;
+    while(seq.length<4){var r=Math.floor(Math.random()*5);if(r!==l){seq.push(r);l=r}}
+    play(1400);
+  }
+  function tap(i){
+    if(won||gsky.classList.contains('lock')) return;
+    flash(i,300); if(navigator.vibrate) navigator.vibrate(12);
+    if(i!==seq[step]){gsky.classList.add('lock');$('gstat').textContent=CONFIG.t.g_wrong;play(1600);return}
+    if(++step===seq.length){
+      won=true;gsky.classList.add('lock','won');$('gstat').textContent=CONFIG.t.g_win;
+      later(function(){gst.forEach(function(b){b.classList.add('lit')});show($('gNext'))},500);
+    }
+  }
+
+  setDots(); screens[0].classList.add('active');
+
+  // фон: частицы
+  var cv=$('bg'), cx=cv.getContext('2d'), W=0,H=0,ps=[],raf=0;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){
+    var d=Math.min(window.devicePixelRatio||1,2);
+    W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0);
+  }
+  function init(){
+    size(); var n=Math.round(Math.min(55,W*H/14000)); ps=[];
+    var cols=['255,255,255','255,150,200','190,160,255'];
+    for(var i=0;i<n;i++) ps.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.4,
+      s:Math.random()*.25+.05,p:Math.random()*6.28,c:cols[i%3]});
+  }
+  function draw(t){
+    cx.clearRect(0,0,W,H);
+    for(var i=0;i<ps.length;i++){
+      var p=ps[i]; p.y-=p.s; if(p.y<-5){p.y=H+5;p.x=Math.random()*W}
+      var a=.35+.45*Math.sin(t/900+p.p);
+      cx.beginPath();cx.fillStyle='rgba('+p.c+','+a.toFixed(2)+')';
+      cx.shadowColor='rgba('+p.c+',.8)';cx.shadowBlur=6;
+      cx.arc(p.x,p.y,p.r,0,6.283);cx.fill();
+    }
+    if(!reduce) raf=requestAnimationFrame(draw);
+  }
+  init(); draw(0);
+  addEventListener('resize',function(){init()});
+  document.addEventListener('visibilitychange',function(){
+    cancelAnimationFrame(raf); if(!document.hidden&&!reduce) raf=requestAnimationFrame(draw);
+  });
+
+  // лёгкий параллакс на десктопе
+  addEventListener('pointermove',function(e){
+    if(e.pointerType==='touch') return;
+    var x=(e.clientX/innerWidth-.5)*24,y=(e.clientY/innerHeight-.5)*24;
+    document.querySelector('.b1').style.transform='translate('+x+'px,'+y+'px)';
+    document.querySelector('.b2').style.transform='translate('+(-x)+'px,'+(-y)+'px)';
+  });
+})();
+</script>
+</body>
+</html>
